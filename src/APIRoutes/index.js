@@ -1,4 +1,4 @@
-export const host = "http://localhost:4000/api/v1/user"
+export const host = "https://4c95-103-124-122-210.ngrok-free.app/api/v1/user"
 
 export const signupRoute = `${host}/signup`
 export const loginRoute = `${host}/login`
