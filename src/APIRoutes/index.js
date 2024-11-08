@@ -16,4 +16,4 @@ export const geminiApi = "https://generativelanguage.googleapis.com/v1beta/model
 export const gradeAssignment = `${host}/teacher/assignment`
 export const generateRoadmap = `${host}/teacher/course/roadmap`
 
-export const flaskApi = 'http://localhost:5000'
+export const flaskApi = 'https://learnify-flask-api.onrender.com'

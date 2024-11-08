@@ -352,7 +352,7 @@ export default function CoursePage() {
         </VStack>
       </Box>
       <Button color={"teal"} onClick={() => handleTakeQuiz(id)} m={5}>
-        {user.role == 'Teacher' ? `Take Quiz` : 'View Quiz'}
+        {user.role == 'Student' ? `Take Quiz` : 'View Quiz'}
       </Button>
       {user.role == 'Teacher' && <Button color={"teal"} onClick={() => handleGenerateQuiz()} m={5}>
         Generate Quiz
