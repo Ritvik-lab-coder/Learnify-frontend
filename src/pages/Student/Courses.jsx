@@ -6,6 +6,8 @@ import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { Outlet } from "react-router-dom";
 import axios from "axios";
 import { getAllCoursesByBranchRoute } from "../../APIRoutes/index.js";
+import { useColorModeContext } from "../../Context/ColorModeContext.jsx";
+import { useColorMode,useColorModeValue } from "@chakra-ui/react";
 
 const Courses = () => {
   const [courses, setCourses] = useState([]);
@@ -47,12 +49,20 @@ const Courses = () => {
     }
   };
 
+  const colorMode=useColorMode().colorMode
+ 
+  const bgColor = colorMode==='dark'?'bg-#27272a':'bg-white'
+  const innerBg=colorMode==='dark'?'bg-#3f3f46':'bg-white'
+  const textColor = colorMode==='dark'?'text-#3f3f46':'text-white'
+
+  console.log(colorMode,bgColor,textColor)
+
   return (
-    <div className="bg-white">
+    <div className={`${bgColor} ${textColor}`}>
       <div className="relative w-full mt-4">
         <div
           ref={carouselRef}
-          className="flex  justify-center items-center flex-wrap no-scrollbar p-2"
+          className={`flex justify-center items-center flex-wrap no-scrollbar p-2`}
         >
           {courses.map((course, index) => {
             const imageUrl = course?.image?.url; // Safely access image URL

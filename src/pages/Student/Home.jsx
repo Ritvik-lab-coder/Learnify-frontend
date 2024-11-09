@@ -25,8 +25,8 @@ const Home = () => {
         <Example />
       </div>
       <div className="flex-1 w-full overflow-y-auto">
-        <div className="flex flex-col">
           <Navbar />
+        <div className="flex flex-col mb-2" >
           <Outlet />
         </div>
       </div>

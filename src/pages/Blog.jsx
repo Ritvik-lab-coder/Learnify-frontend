@@ -9,19 +9,18 @@ const Blog = () => {
   const [error, setError] = useState(null);
 
   const API_KEY = '3d3fa0dbfd4b4fbab62f850b4e845b5e'; // Replace with your NewsAPI key
-  const API_URL = 'https://newsapi.org/v3/everything?q=tech%20forum&apiKey=';
+  const API_URL = 'https://newsapi.org/v2/everything?q=tech%20forum&apiKey=';
 
   useEffect(() => {
     const fetchArticles = async () => {
       try {
         const response = await axios.get(`${API_URL}${API_KEY}`);
         // Filter articles to keep only those with source and image URL
-        const filteredArticles = response.data.articles.filter(article =>
+        const filteredArticles = response.data.articles.filter(article => 
           article.source && article.source.name && article.urlToImage
         );
         setArticles(filteredArticles);
       } catch (error) {
-        console.log(error)
         setError('Failed to fetch articles');
       } finally {
         setLoading(false);

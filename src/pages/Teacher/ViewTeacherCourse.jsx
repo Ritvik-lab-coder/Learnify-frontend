@@ -47,18 +47,9 @@ const ViewTeacherCourse = () => {
   return (
     <div>
       <div className="relative w-full mt-4">
-        {/* Left Arrow */}
-        <button
-          className="absolute left-0 z-10 p-2 bg-white rounded-full shadow-lg hover:bg-gray-200"
-          onClick={() => scroll("left")}
-        >
-          <FiChevronLeft size={24} className="text-black" />
-        </button>
-
-        {/* Carousel container */}
         <div
           ref={carouselRef}
-          className="flex overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar space-x-4 p-4 custom-scrollbar"
+          className="flex flex-wrap no-scrollbar space-x-2 p-2 custom-scrollbar"
         >
           {courses.map((course, index) => {
             return (
@@ -72,14 +63,6 @@ const ViewTeacherCourse = () => {
             );
           })}
         </div>
-
-        {/* Right Arrow */}
-        <button
-          className="absolute top-0 right-0 z-10 p-2 bg-white rounded-full shadow-lg hover:bg-gray-200"
-          onClick={() => scroll("right")}
-        >
-          <FiChevronRight size={24} className="text-black" />
-        </button>
       </div>
     </div>
   );

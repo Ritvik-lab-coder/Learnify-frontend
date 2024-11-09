@@ -4,7 +4,7 @@ import "./index.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { ViewTeacherCourse } from "./pages/index.js";
 import { PageNotFound } from "./components/index.js";
-import { ChakraProvider } from '@chakra-ui/react';
+import { ChakraProvider, ColorModeContext } from '@chakra-ui/react';
 import Home from "./pages/Student/Home.jsx";
 import Courses from "./pages/Student/Courses.jsx";
 import Register from "./pages/Auth/Register.jsx";
@@ -20,6 +20,9 @@ import TeacherCourse from './components/TeacherCourse.jsx'
 import SignLanguageCourse from "./pages/SignLangugae/signLangCoursePage.jsx";
 import ChakraCalendar from "./pages/Student/Calendar.jsx";
 import Chat from "./pages/Student/Chat.jsx";
+import ChatbotInterface from "./pages/Student/ChatBot.jsx";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+
 
 const router = createBrowserRouter([
   {
@@ -37,7 +40,7 @@ const router = createBrowserRouter([
       },
       {
         path: "chat",
-        element: <Chat />,
+        element: <ChatbotInterface />,
       },
       {
         path: "",
@@ -98,8 +101,11 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("root")).render(
   // <StrictMode>
-  <ChakraProvider>
-    <RouterProvider router={router} />
-  </ChakraProvider>
+  <GoogleOAuthProvider clientId={`${import.meta.env.VITE_GOOGLE_AUTH_KEY}`}>
+    <ChakraProvider>
+      <RouterProvider router={router} />
+    </ChakraProvider>
+  </GoogleOAuthProvider>
+
   /* </StrictMode> */
 );

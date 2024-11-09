@@ -1,74 +1,85 @@
 .deadline-calendar {
-    max-width: 400px;
-    margin: 40px auto;
-    padding: 20px;
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  .deadline-calendar .calendar {
-    width: 100%;
-  }
-  
-  .deadline-calendar .react-calendar {
-    border: none;
-  }
-  
-  .deadline-calendar .react-calendar__tile {
-    transition: background-color 0.2s ease-in-out;
-  }
-  
-  .deadline-calendar .today {
-    background-color: #f0f0f0;
-  }
-  
-  .deadline-calendar .assignment-date {
-    background-color: #ffe0e0;
-    color: #ff5050;
-  }
-  
-  .deadline-calendar .react-calendar__tile--active {
-    background-color: #007bff;
-    color: #fff;
-  }
-  
-  .deadline-calendar .react-calendar__tile--hasDate {
-    cursor: pointer;
-  }
-  
-  .deadline-calendar ul {
-    list-style: disc inside;
-    padding: 0 20px;
-  }
-  
-  .deadline-calendar li {
-    margin-bottom: 10px;
-  }
-  
-  .deadline-calendar li:last-child {
-    margin-bottom: 0;
-  }
-  
-  .deadline-calendar .text-gray-700 {
-    color: #6b7280;
-  }
-  
-  .deadline-calendar .text-red-500 {
-    color: #ff5050;
-  }
-  
-  .deadline-calendar .text-gray-500 {
-    color: #9ca3af;
-  }
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
 
-  /* index.css or global css */
+.react-calendar {
+  border: none;
+}
+
+.react-calendar__tile {
+  transition: background-color 0.2s ease-in-out;
+}
+
+.react-calendar__tile.today {
+  background-color: #f0f0f0;
+  border-radius: 25%;
+}
+
+.react-calendar__tile.assignment-date {
+  background-color: #ffe0e0;
+  color: #ff5050;
+}
+
+.react-calendar__tile--active {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.react-calendar__tile--hasDate {
+  cursor: pointer;
+}
+
+ul {
+  list-style: disc inside;
+  padding: 0 20px;
+}
+
+li {
+  margin-bottom: 10px;
+}
+
+li:last-child {
+  margin-bottom: 0;
+}
+
+.text-gray-700 {
+  color: #6b7280;
+}
+
+.text-red-500 {
+  color: #ff5050;
+}
+
+.text-gray-500 {
+  color: #9ca3af;
+  border-radius: 25%;
+}
+
 .react-calendar__tile.submitted {
-  background-color: #22c55e; /* Tailwind's green-500 */
+  background-color: #22c55e;
   color: white;
+  border-radius: 25%;
 }
 
 .react-calendar__tile.unsubmitted {
-  background-color: #ef4444; /* Tailwind's red-500 */
+  background-color: #ef4444;
   color: white;
+  border-radius: 25%;
+}
+
+
+/* CSS */
+.custom-kanban {
+  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.custom-kanban::-webkit-scrollbar {
+  display: none;
 }

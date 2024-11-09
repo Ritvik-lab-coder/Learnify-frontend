@@ -33,6 +33,7 @@ export default function ProfilePage() {
     });
     const navigate = useNavigate();
     const bgColor = useColorModeValue('white', 'gray.800');
+    const innerBgColor = useColorModeValue('white','gray.700');
     const textColor = useColorModeValue('gray.600', 'gray.200');
 
     const [courseAssignments, setCourseAssignments] = useState([]);
@@ -136,12 +137,12 @@ export default function ProfilePage() {
         <Container maxW="container.xl" py={8}>
             <Flex>
                 <Box className="w-1/2 pr-4">
-                    <Box bg={bgColor} p={6} rounded="lg" shadow="md" mb={6}>
+                    <Box bg={innerBgColor} p={6} rounded="lg" shadow="md" mb={6}>
                         <Flex alignItems="center" mb={4}>
                             <Avatar size="xl" name={formData.name} src={formData.image} mr={4} />
                             <Box>
                                 <Heading size="lg">{formData.name}</Heading>
-                                <Text color={textColor}>@{formData.username}</Text>
+                                <Text color={textColor}>@{formData.username.length>11?formData.username.slice(0,11)+'...':formData.username}</Text>
                             </Box>
                         </Flex>
 
@@ -195,7 +196,7 @@ export default function ProfilePage() {
                 </Box>
 
                 <Box className="w-1/2 pl-4">
-                    <Box bg={bgColor} p={6} rounded="lg" shadow="md">
+                    <Box bg={innerBgColor} p={6} rounded="lg" shadow="md">
                         <Heading size="md" mb={4}>Courses Joined</Heading>
                         <Text color={textColor} mb={4}>Your learning journey</Text>
                         <VStack spacing={4} align="stretch">

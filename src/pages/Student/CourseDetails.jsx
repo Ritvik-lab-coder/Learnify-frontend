@@ -1,33 +1,220 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Box,
-  Container,
-  Heading,
-  Text,
-  SimpleGrid,
-  Badge,
-  VStack,
-  HStack,
+  Button,
   Card,
   CardBody,
-  Icon,
-  Button,
-  Input,
-  Flex,
+  CardHeader,
+  Container,
+  Heading,
+  Textarea,
   useToast,
+  Text,
+  Circle,
+  HStack,
+  Image,
+  VStack,
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  AccordionIcon,
+  Input,
   FormControl,
   FormLabel,
-  Select,
-  Textarea,
+  Modal,
+  AspectRatio,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  Flex,
+  Link,
+  Icon,
+  Badge,
+  Spinner
 } from "@chakra-ui/react";
-import { CheckCircleIcon, TimeIcon } from "@chakra-ui/icons";
+import { TimeIcon, AttachmentIcon, CheckIcon } from "@chakra-ui/icons";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { generateRoadmap, getAssignments, gradeAssignment, submitAssignment } from "../../APIRoutes/index.js";
+import {
+  generateRoadmap,
+  getAssignments,
+  gradeAssignment,
+  submitAssignment,
+} from "../../APIRoutes/index.js";
 import { host } from "../../APIRoutes/index.js";
 import BarGraph from "../../components/bargraph.jsx";
 
-export default function CoursePage() {
+
+function Roadmap({ roadmap, user }) {
+  const [file, setFile] = useState(null);
+  const fileInputRef = useRef(null);
+  const { id } = useParams();
+  const toast = useToast();
+
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files[0];
+    console.log("heer");
+
+    if (selectedFile) {
+      setFile(selectedFile);
+      console.log("Selected file:", selectedFile);
+    } else {
+      console.log("No file selected.");
+    }
+  };
+
+  const handleUploadContent = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleFileSubmit = async (roadmapId) => {
+    if (!file) {
+      console.warn("No file selected for upload.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("content", file);
+
+    try {
+      const response = await axios.post(
+        `${host}/teacher/course/roadmap/${id}/content`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            roadmapid: roadmapId,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        toast({
+          title: "File uploaded successfully",
+          description: response.data.message,
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+        console.log("File uploaded successfully:", response.data);
+        setFile(null);
+        fileInputRef.current.value = null;
+      }
+    } catch (error) {
+      toast({
+        title: "Error uploading file",
+        description: "There was an error uploading the file.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      console.error("Error uploading file:", error);
+    }
+  };
+
+  return (
+    <Accordion allowToggle>
+      {roadmap.map((item, index) => (
+        <AccordionItem
+          key={index}
+          borderWidth="1px"
+          borderRadius="md"
+          overflow="hidden"
+          mb={4}
+        >
+          <h2>
+            <AccordionButton _expanded={{ bg: "teal.50" }} p={4}>
+              <HStack spacing={4} w="full">
+                <Circle
+                  size="30px"
+                  bg="teal.500"
+                  color="white"
+                  fontWeight="bold"
+                >
+                  {index + 1}
+                </Circle>
+                <Box flex="1" textAlign="left" fontWeight="medium">
+                  {item.title}
+                </Box>
+              </HStack>
+              <AccordionIcon />
+            </AccordionButton>
+          </h2>
+          <AccordionPanel pb={4} px={6} bg="gray.50">
+            <Text mb={4} color="gray.700">
+              {item.description}
+            </Text>
+
+            <Flex direction="column" gap={4} wrap="wrap">
+              {/* Conditionally render video card or 'No content uploaded' message */}
+              {item.links.length > 0 ? (
+                <Box
+                  width="100%"
+                  borderWidth="1px"
+                  borderRadius="lg"
+                  overflow="hidden"
+                  p={4}
+                  bg="white"
+                >
+                  <Text fontWeight="bold" mb={2} color="gray.700">
+                    Video Content
+                  </Text>
+                  <AspectRatio ratio={2 / 1} width="100%">
+                    <iframe
+                      title="Video Content"
+                      src={item.links[0]}
+                      style={{ width: "100%", height: "100%", border: "none" }}
+                      allowFullScreen
+                    />
+                  </AspectRatio>
+                </Box>
+              ) : (
+                <Box
+                  width="100%"
+                  borderWidth="1px"
+                  borderRadius="lg"
+                  overflow="hidden"
+                  p={4}
+                  bg="white"
+                >
+                  <Text color="gray.600" fontSize="md">
+                    No content uploaded
+                  </Text>
+                </Box>
+              )}
+
+              {/* Upload button for Teachers */}
+              {user.role === "Teacher" && (
+                <>
+                  <Button colorScheme="teal" onClick={handleUploadContent}>
+                    Upload Content
+                  </Button>
+                  <Button
+                    colorScheme="blue"
+                    onClick={() => handleFileSubmit(item._id)}
+                  >
+                    Submit
+                  </Button>
+                  <Input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                  />
+                </>
+              )}
+            </Flex>
+          </AccordionPanel>
+        </AccordionItem>
+      ))}
+    </Accordion>
+  );
+}
+
+export default function CourseDetail() {
   const { id } = useParams();
   const user = JSON.parse(localStorage.getItem("user"));
   const courses = JSON.parse(
@@ -35,6 +222,7 @@ export default function CoursePage() {
       user.role === "Student" ? "student-courses" : "teacher-courses"
     )
   );
+
   const toast = useToast();
   const navigate = useNavigate();
   const selectedCourse = courses.find((course) => course._id === id);
@@ -44,8 +232,12 @@ export default function CoursePage() {
   const [file, setFile] = useState(null);
   const [grades, setGrades] = useState({});
   const [hasSubmitted, setHasSubmitted] = useState({});
-  const [histo, setHisto] = useState(false);
   const [studentMarks, setStudentMarks] = useState([]);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const onOpen = () => setIsOpen(true);
+  const onClose = () => setIsOpen(false);
+
   const [newAssignment, setNewAssignment] = useState({
     deadline: "",
     course: id,
@@ -70,7 +262,25 @@ export default function CoursePage() {
         console.log("Error fetching assignments:", error);
       }
     };
+
+    const handleLeaderBoard = async () => {
+      try {
+        const response = await axios.get(`${host}/course/${id}`, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        });
+        // console.log(response.data);
+
+        setStudentMarks(response.data.leaderboard);
+        // setHisto(true);
+      } catch (error) {
+        console.log("Error fetching leaderboard:", error);
+      }
+    };
     fetchAssignments();
+    handleLeaderBoard();
   }, [id]);
 
   const handleInputChange = (e) => {
@@ -105,6 +315,10 @@ export default function CoursePage() {
       });
       return;
     }
+    const openVideo = (video) => {
+      setSelectedVideo(video);
+      onOpen();
+    };
 
     const formData = new FormData();
     formData.append("submissionFile", file);
@@ -136,30 +350,6 @@ export default function CoursePage() {
       toast({
         title: "Upload failed",
         description: "There was an error uploading your assignment.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
-    }
-  };
-
-  const handleLeaderBoard = async () => {
-    try {
-      const response = await axios.get(`${host}/course/${id}`, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        withCredentials: true,
-      });
-      console.log(response.data);
-
-      setStudentMarks(response.data.leaderboard);
-      setHisto(true);
-    } catch (error) {
-      console.log("Error fetching leaderboard:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load leaderboard.",
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -201,7 +391,7 @@ export default function CoursePage() {
   const handleCreateAssignment = async () => {
     // Validate the form inputs
     const { deadline, course, description, criteria } = newAssignment;
-    if (!deadline || !course || !description || criteria.some(c => !c)) {
+    if (!deadline || !course || !description || criteria.some((c) => !c)) {
       toast({
         title: "Incomplete Form",
         description: "Please fill out all fields.",
@@ -220,12 +410,16 @@ export default function CoursePage() {
     };
 
     try {
-      const response = await axios.post(`${host}/teacher/assignment`, assignmentData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        withCredentials: true,
-      });
+      const response = await axios.post(
+        `${host}/teacher/assignment`,
+        assignmentData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
       if (response.data.success) {
         toast({
           title: "Assignment Created",
@@ -311,7 +505,7 @@ export default function CoursePage() {
   const handleGenerateRoadmap = async () => {
     try {
       const response = await axios.get(`${generateRoadmap}/${id}`, {
-        withCredentials: true
+        withCredentials: true,
       });
       if (response.data.success) {
         toast({
@@ -325,270 +519,327 @@ export default function CoursePage() {
       }
     } catch (error) {
       console.log(error);
-      toast({
-        title: "Error",
-        description: "Failed to generate roadmap.",
-        status: "error",
-        duration: 5000,
-        isClosable: true,
-      });
     }
-  }
+  };
+
+ 
+function GradeButton({ item, grades, handleGrade,onOpen }) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleCalculateGrade = async (id) => {
+    setIsLoading(true); // Show loading indicator
+    await handleGrade(id); // Call the grade calculation function
+    setIsLoading(false); // Hide loading indicator once done
+  };
 
   return (
-    <Container maxW="container.xl" py={8}>
-      <Box mb={8}>
-        <VStack align="start" justify="center" spacing={4}>
-          <Heading as="h1" size="2xl">
-            {selectedCourse.name}
-          </Heading>
-          <Text fontSize="xl" color="gray.600" w="full">
-            {truncateText(selectedCourse.description, 400)}
-          </Text>
-          <HStack>
-            <Badge colorScheme="gray">12 weeks</Badge>
-            <Badge colorScheme="gray">Online</Badge>
-          </HStack>
-        </VStack>
-      </Box>
-      <Button color={"teal"} onClick={() => handleTakeQuiz(id)} m={5}>
-        {user.role == 'Student' ? `Take Quiz` : 'View Quiz'}
-      </Button>
-      {user.role == 'Teacher' && <Button color={"teal"} onClick={() => handleGenerateQuiz()} m={5}>
-        Generate Quiz
-      </Button>}
-      {user.role == 'Teacher' && roadmaps.length === 0 && roadmap.length === 0 && <Button color={"teal"} onClick={() => handleGenerateRoadmap()} m={5}>
-        Generate Roadmap
-      </Button>}
-      {/* Conditionally render the "Take Quiz" button */}
-      {selectedCourse.name === "Sign Language" && (
+    <>
+      {grades[item._id] === undefined ? (
         <Button
-          color={"teal"}
-          m={5}
+          colorScheme="blue"
+          onClick={() => handleCalculateGrade(item._id)}
+          width="48%"
+          size="lg"
+          disabled={isLoading}
         >
-          Learn
-        </Button>
-      )}
-
-      {/* Assignments List */}
-      {assignments.length !== 0 && <Heading as="h2" size="xl" mt={12} mb={6}>
-        Assignments
-      </Heading>}
-      <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
-        {assignments.map((item, index) => (
-          <Card key={item._id} display="flex" flexDirection="column" height="100%">
-            <CardBody display="flex" flexDirection="column" flexGrow={1}>
-              <HStack mb={2}>
-                <Icon as={TimeIcon} color="red.500" />
-                <Heading size="md">{item.description}</Heading>
-              </HStack>
-              <HStack className="flex flex-wrap">
-                {item.criteria.map((c, idx) => (
-                  <Badge colorScheme="gray" key={idx}>
-                    {c}
-                  </Badge>
-                ))}
-              </HStack>
-              <Text fontWeight="semibold">
-                Deadline: {new Date(item.deadline).toLocaleDateString()}
-              </Text>
-
-              {user.role === 'Student' && (
-                <>
-                  <Button
-                    as="label"
-                    htmlFor={`file-input-${index}`}
-                    colorScheme="teal"
-                    width="100%"
-                    mt="auto"
-                    size="lg"
-                    cursor="pointer"
-                  >
-                    {hasSubmitted[item._id] ? "Uploaded" : "Upload Assignment"}
-                    <Input
-                      id={`file-input-${index}`}
-                      type="file"
-                      display="none"
-                      accept=".pdf"
-                      onChange={handleFileChange}
-                    />
-                  </Button>
-                  {!hasSubmitted[item._id] && (
-                    <Button
-                      colorScheme="teal"
-                      className="my-4"
-                      onClick={() => handleFileUpload(item._id)}
-                      isDisabled={!file}
-                    >
-                      Submit
-                    </Button>
-                  )}
-
-                  <Button
-                    colorScheme="teal"
-                    className="my-4"
-                    onClick={() => handleGrade(item._id)}
-                  >
-                    See Grade
-                  </Button>
-                </>
-              )}
-
-              {grades[item._id] && (
-                <Flex direction="column" mt={4}>
-                  <Text fontWeight="bold" fontSize="lg">
-                    Grade: {grades[item._id].grade}
-                  </Text>
-                  {Object.entries(grades[item._id])
-                    .filter(([key]) => key !== "grade")
-                    .map(([key, value]) => (
-                      <Text key={key}>
-                        <span style={{ fontWeight: "bold" }}>{key}:</span> {value}
-                      </Text>
-                    ))}
-                </Flex>
-              )}
-            </CardBody>
-          </Card>
-        ))}
-      </SimpleGrid>
-
-      {/* Create Assignment Form (Teacher Only) */}
-      {user.role === 'Teacher' && (
-        <>
-          {showAssignmentForm ? (
-            <Box p={6} borderWidth="1px" borderRadius="lg" mb={6} mt={8}>
-              <Heading as="h3" size="lg" mb={6}>
-                Create New Assignment
-              </Heading>
-
-              <FormControl mb={4}>
-                <FormLabel>Deadline</FormLabel>
-                <Input
-                  type="date"
-                  name="deadline"
-                  value={newAssignment.deadline}
-                  onChange={handleInputChange}
-                />
-              </FormControl>
-
-              {/* <FormControl mb={4}>
-                <FormLabel>Course</FormLabel>
-                <Select
-                  name="course"
-                  placeholder="Select course"
-                  value={newAssignment.course}
-                  onChange={handleInputChange}
-                >
-                  {courses.map((course) => (
-                    <option key={course._id} value={course._id}>
-                      {course.name}
-                    </option>
-                  ))}
-                </Select>
-              </FormControl> */}
-
-              <FormControl mb={4}>
-                <FormLabel>Description</FormLabel>
-                <Textarea
-                  name="description"
-                  value={newAssignment.description}
-                  onChange={handleInputChange}
-                />
-              </FormControl>
-
-              <FormControl mb={4}>
-                <FormLabel>Criteria 1</FormLabel>
-                <Input
-                  value={newAssignment.criteria[0]}
-                  onChange={(e) => handleCriteriaChange(0, e.target.value)}
-                />
-              </FormControl>
-
-              <FormControl mb={4}>
-                <FormLabel>Criteria 2</FormLabel>
-                <Input
-                  value={newAssignment.criteria[1]}
-                  onChange={(e) => handleCriteriaChange(1, e.target.value)}
-                />
-              </FormControl>
-
-              <FormControl mb={4}>
-                <FormLabel>Criteria 3</FormLabel>
-                <Input
-                  value={newAssignment.criteria[2]}
-                  onChange={(e) => handleCriteriaChange(2, e.target.value)}
-                />
-              </FormControl>
-
-              <Button colorScheme="teal" onClick={handleCreateAssignment}>
-                Submit Assignment
-              </Button>
-              <Button mx={2} colorScheme="teal" onClick={() => { setShowAssignmentForm(false) }}>
-                Back
-              </Button>
-            </Box>
+          {isLoading ? (
+            <Spinner size="md" color="white" /> // Show spinner while loading
           ) : (
-            <Button colorScheme="teal" onClick={() => setShowAssignmentForm(true)} m={2}>
-              Create Assignment
-            </Button>
+            "Calculate Grade"
           )}
-        </>
-      )}
-
-      {/* Leaderboard */}
-      {(roadmap.length !== 0 || roadmaps.length !== 0) && <Heading as="h2" size="xl" mt={12} mb={6}>
-        Course Roadmap
-      </Heading>}
-
-      {roadmap.length !== 0 && <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
-        {roadmap.map((item, index) => (
-          <Card key={index}>
-            <CardBody>
-              <HStack mb={2}>
-                <Icon as={CheckCircleIcon} color="green.500" />
-                <Heading size="md">{item.title}</Heading>
-              </HStack>
-              <Text color="gray.600">{item.description}</Text>
-              {user.role === "Teacher" && <Button colorScheme="teal">Upload Content</Button>}
-            </CardBody>
-          </Card>
-        ))}
-      </SimpleGrid>}
-
-      {roadmaps.length !== 0 && <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={4}>
-        {roadmaps.map((item, index) => (
-          <Card key={index}>
-            <CardBody>
-              <HStack mb={2}>
-                <Icon as={CheckCircleIcon} color="green.500" />
-                <Heading size="md">{item.title}</Heading>
-              </HStack>
-              <Text color="gray.600">{item.description}</Text>
-              {user.role === "Teacher" && <Button colorScheme="teal">Upload Content</Button>}
-            </CardBody>
-          </Card>
-        ))}
-      </SimpleGrid>}
-
-      {!histo ? (
-        <Button colorScheme="teal" className="my-4" onClick={handleLeaderBoard}>
-          Check Leaderboard
         </Button>
       ) : (
-        <Button
-          colorScheme="teal"
-          className="my-4"
-          onClick={() => {
-            setHisto(false);
-            setStudentMarks([]);
-          }}
-        >
-          Remove Leaderboard
+        <Button colorScheme="blue" width="48%" size="lg" onClick={onOpen}>
+          See Grade
         </Button>
       )}
-      {histo && <BarGraph studentMarks={studentMarks} />}
-    </Container>
+    </>
   );
 }
 
+  return (
+    <Container maxW="container.xl" py={8}>
+      <VStack spacing={8} align="stretch">
+        <Card>
+          <CardHeader>
+            <Heading size="lg">{selectedCourse.name}</Heading>
+          </CardHeader>
+          {selectedCourse.img?.url && (
+            <Image
+              src={selectedCourse.img.url}
+              alt={`${selectedCourse.name} image`}
+              objectFit="cover"
+              borderRadius="md"
+              maxH="200px"
+              width="100%"
+            />
+          )}
+          <CardBody>
+            <Text>{truncateText(selectedCourse.description, 400)}</Text>
+          </CardBody>
+
+          <Box p={4}>
+            <Flex gap={4} flexWrap="wrap" justifyContent="flex-start">
+              <Button
+                colorScheme="teal"
+                variant="solid"
+                onClick={() => handleTakeQuiz(id)}
+              >
+                {user.role === "Teacher" ? "View Quiz" : "Take Quiz"}
+              </Button>
+
+              {user.role === "Teacher" && (
+                <Button
+                  colorScheme="teal"
+                  variant="outline"
+                  onClick={() => handleGenerateQuiz()}
+                >
+                  AI Generate Quiz
+                </Button>
+              )}
+
+              {user.role === "Teacher" &&
+                roadmaps.length === 0 &&
+                roadmap.length === 0 && (
+                  <Button
+                    colorScheme="teal"
+                    variant="outline"
+                    onClick={() => handleGenerateRoadmap()}
+                  >
+                    AI Generate Roadmap
+                  </Button>
+                )}
+            </Flex>
+          </Box>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <Heading size="md">Course Roadmap</Heading>
+          </CardHeader>
+          <CardBody>
+            <Roadmap roadmap={roadmap} user={user} />
+          </CardBody>
+        </Card>
+
+        {assignments.length !== 0 && (
+          <Heading as="h2" size="xl" mt={12} mb={6}>
+            Assignments
+          </Heading>
+        )}
+        <VStack spacing={6} align="stretch">
+          {assignments.map((item, index) => (
+            <Card
+              key={item._id}
+              display="flex"
+              flexDirection="column"
+              width="100%"
+            >
+              <CardBody display="flex" flexDirection="column" flexGrow={1}>
+                <VStack align="start" mb={4}>
+                  <HStack mb={2}>
+                    <Icon as={TimeIcon} color="red.500" />
+                    <Heading size="md">{item.description}</Heading>
+                  </HStack>
+                  <HStack className="flex flex-wrap" spacing={2} mb={2}>
+                    {item.criteria.map((c, idx) => (
+                      <Badge colorScheme="gray" key={idx}>
+                        {c}
+                      </Badge>
+                    ))}
+                  </HStack>
+                  <Text fontWeight="semibold" mb={4}>
+                    Deadline: {new Date(item.deadline).toLocaleDateString()}
+                  </Text>
+                </VStack>
+
+                {user.role === "Student" && (
+                  <VStack spacing={4} align="stretch">
+                    {/* Upload Button */}
+                    <Button
+                      as="label"
+                      htmlFor={`file-input-${index}`}
+                      colorScheme={hasSubmitted[item._id] ? "green" : "teal"} // Change color if uploaded
+                      width="100%"
+                      size="lg"
+                      cursor="pointer"
+                      leftIcon={
+                        hasSubmitted[item._id] ? (
+                          <CheckIcon />
+                        ) : (
+                          <AttachmentIcon />
+                        )
+                      } // Add an icon based on status
+                      isDisabled={hasSubmitted[item._id]} // Disable if already submitted
+                    >
+                      {hasSubmitted[item._id]
+                        ? "Uploaded"
+                        : "Upload Assignment"}
+                      <Input
+                        id={`file-input-${index}`}
+                        type="file"
+                        display="none"
+                        accept=".pdf"
+                        onChange={handleFileChange}
+                      />
+                    </Button>
+
+                    {/* If the assignment is not submitted, show the Submit and See Grade buttons */}
+                    <HStack spacing={4} width="100%" justify="space-between">
+                      {/* Submit Button (only visible if not submitted) */}
+                      {!hasSubmitted[item._id] && (
+                        <Button
+                          colorScheme="teal"
+                          onClick={() => handleFileUpload(item._id)}
+                          isDisabled={!file} // Disable if no file is selected
+                          width="48%"
+                          size="lg"
+                        >
+                          Submit
+                        </Button>
+                      )}
+                      <GradeButton item={item} grades={grades} handleGrade={handleGrade} onOpen={onOpen}></GradeButton>
+                
+                    </HStack>
+                  </VStack>
+                )}
+
+                {grades[item._id] && (
+                  <Modal isOpen={isOpen} onClose={onClose}>
+                    <ModalOverlay />
+                    <ModalContent maxWidth="80%">
+                      <ModalHeader>Your Grade</ModalHeader>
+                      <ModalCloseButton />
+                      <ModalBody>
+                        {/* Grade Section */}
+                        <Text
+                          fontSize="2xl"
+                          fontWeight="bold"
+                          color="teal.500"
+                          mb={4}
+                        >
+                          Score: {grades[item._id].grade}/10
+                        </Text>
+
+                        {/* Criteria and Feedback Section */}
+                        {Object.entries(grades[item._id])
+                          .filter(([key]) => key !== "grade") // Exclude 'grade' property
+                          .map(([criteria, feedback]) => (
+                            <Box key={criteria} mb={4}>
+                              {/* Display the criterion */}
+                              <Text
+                                fontWeight="bold"
+                                fontSize="lg"
+                                color="gray.700"
+                              >
+                                {criteria}
+                              </Text>
+                              {/* Display the feedback for the criterion */}
+                              <Text color="gray.600" fontSize="md">
+                                {feedback}
+                              </Text>
+                            </Box>
+                          ))}
+                      </ModalBody>
+                      <ModalFooter>
+                        <Button colorScheme="blue" onClick={onClose}>
+                          Close
+                        </Button>
+                      </ModalFooter>
+                    </ModalContent>
+                  </Modal>
+                )}
+              </CardBody>
+            </Card>
+          ))}
+        </VStack>
+
+        {/* Create Assignment Form (Teacher Only) */}
+        {user.role === "Teacher" && (
+          <>
+            {showAssignmentForm ? (
+              <Box p={6} borderWidth="1px" borderRadius="lg" mb={6} mt={8}>
+                <Heading as="h3" size="lg" mb={6}>
+                  Create New Assignment
+                </Heading>
+
+                <FormControl mb={4}>
+                  <FormLabel>Deadline</FormLabel>
+                  <Input
+                    type="date"
+                    name="deadline"
+                    value={newAssignment.deadline}
+                    onChange={handleInputChange}
+                  />
+                </FormControl>
+
+                <FormControl mb={4}>
+                  <FormLabel>Description</FormLabel>
+                  <Textarea
+                    name="description"
+                    value={newAssignment.description}
+                    onChange={handleInputChange}
+                  />
+                </FormControl>
+
+                <FormControl mb={4}>
+                  <FormLabel>Criteria 1</FormLabel>
+                  <Input
+                    value={newAssignment.criteria[0]}
+                    onChange={(e) => handleCriteriaChange(0, e.target.value)}
+                  />
+                </FormControl>
+
+                <FormControl mb={4}>
+                  <FormLabel>Criteria 2</FormLabel>
+                  <Input
+                    value={newAssignment.criteria[1]}
+                    onChange={(e) => handleCriteriaChange(1, e.target.value)}
+                  />
+                </FormControl>
+
+                <FormControl mb={4}>
+                  <FormLabel>Criteria 3</FormLabel>
+                  <Input
+                    value={newAssignment.criteria[2]}
+                    onChange={(e) => handleCriteriaChange(2, e.target.value)}
+                  />
+                </FormControl>
+
+                <Button colorScheme="teal" onClick={handleCreateAssignment}>
+                  Submit Assignment
+                </Button>
+                <Button
+                  mx={2}
+                  colorScheme="teal"
+                  onClick={() => {
+                    setShowAssignmentForm(false);
+                  }}
+                >
+                  Back
+                </Button>
+              </Box>
+            ) : (
+              <Button
+                colorScheme="teal"
+                onClick={() => setShowAssignmentForm(true)}
+                m={2}
+              >
+                Create Assignment
+              </Button>
+            )}
+          </>
+        )}
+        <Card>
+          <CardHeader>
+            <Heading size="md">Leaderboard</Heading>
+            <Text>Top performers in this course</Text>
+          </CardHeader>
+          <CardBody>
+            <BarGraph studentMarks={studentMarks} />
+          </CardBody>
+        </Card>
+      </VStack>
+    </Container>
+  );
+}

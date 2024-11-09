@@ -1,23 +1,52 @@
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
+import gsap from "gsap";
+
 
 const ShuffleHero = () => {
   const token = localStorage.getItem('token');
+  const headingRef = useRef();
+  const subHeadingRef = useRef();
+  const descriptionRef = useRef();
+  const buttonRef = useRef();
+
+  useEffect(() => {
+    // Define the timeline
+    const tl = gsap.timeline({
+      defaults: { ease: "back.inOut(4)", duration: 1.7 },
+    });
+
+    // Animate each element sequentially
+    tl.from(headingRef.current, { x: -40, opacity: 0 })
+      .from(subHeadingRef.current, { x: -40, opacity: 0 }, "-=0.75")
+      .from(descriptionRef.current, { x: -40, opacity: 0 }, "-=1.0")
+      
+  }, []);
+
   return (
     <section className="w-full px-8 py-12 grid grid-cols-1 md:grid-cols-2 items-center gap-8 max-w-6xl mx-auto">
       <div>
-        <span className="block mb-4 text-xs md:text-sm text-indigo-500 font-medium">
-        Elevate Your Learning Experience
+        <span
+          ref={subHeadingRef}
+          className="block mb-4 text-xs md:text-sm text-indigo-500 font-medium"
+        >
+          Elevate Your Learning Experience
         </span>
-        <h3 className="text-4xl md:text-6xl font-semibold">
-        Transforming Learning with AI-Powered Education
+        <h3 ref={headingRef} className="text-4xl md:text-6xl font-semibold">
+          Transforming Learning with AI-Powered Education
         </h3>
-        <p className="text-base md:text-lg text-slate-700 my-4 md:my-6">
-        Empower your education with intelligent tools designed to adapt to your pace, track your progress, and provide instant feedback. Whether you're a student or a teacher, our platform helps you stay ahead.
+        <p
+          ref={descriptionRef}
+          className="text-base md:text-lg text-slate-700 my-4 md:my-6"
+        >
+          Empower your education with intelligent tools designed to adapt to
+          your pace, track your progress, and provide instant feedback. Whether
+          you're a student or a teacher, our platform helps you stay ahead.
         </p>
         {token ? (
           <Link
+           
             to="/home"
             className="bg-indigo-500 text-white font-medium py-2 px-4 rounded transition-all hover:bg-indigo-600 active:scale-95"
           >
@@ -25,6 +54,7 @@ const ShuffleHero = () => {
           </Link>
         ) : (
           <Link
+            
             to="/login"
             className="bg-indigo-500 text-white font-medium py-2 px-4 rounded transition-all hover:bg-indigo-600 active:scale-95"
           >
